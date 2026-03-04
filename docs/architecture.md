@@ -253,8 +253,10 @@ User receives alert
 Installation:
 
 ```
-pip install trainwatch
+pip install trainwatch-notify
 ```
+
+Note: the PyPI distribution name is `trainwatch-notify`, but the import package remains `trainwatch`.
 
 Training script:
 

@@ -1,32 +1,32 @@
-﻿# Phase-01 Architecture
+# Phase-01 Architecture
 
 **Project: TrainWatch (Working Name)**
 Purpose: Notify developers when ML training **completes or fails**, with a **minimal run summary**.
 
 ---
 
-# 1️⃣ System Overview
+# 1?? System Overview
 
 Phase-01 architecture is intentionally simple.
 
 ```
 User Training Script
-        │
-        ▼
+        �
+        ?
 TrainWatch Monitor
-        │
-        ├── Runtime Tracker
-        ├── Metric Logger (optional)
-        ├── Error Capture
-        │
-        ▼
+        �
+        +-- Runtime Tracker
+        +-- Metric Logger (optional)
+        +-- Error Capture
+        �
+        ?
 Summary Generator
-        │
-        ▼
+        �
+        ?
 Notification Engine
-        │
-        ├── Email
-        └── Telegram
+        �
+        +-- Email
+        +-- Telegram
 ```
 
 The system only answers one question:
@@ -37,7 +37,7 @@ And sends a **short summary**.
 
 ---
 
-# 2️⃣ Core Design Principles
+# 2?? Core Design Principles
 
 ### Simplicity
 
@@ -62,35 +62,35 @@ Notifications must always be sent if training finishes or crashes.
 
 ---
 
-# 3️⃣ Package Structure
+# 3?? Package Structure
 
 ```
 trainwatch/
 
-├── __init__.py
-├── monitor.py
-├── logger.py
-├── runtime.py
-├── summary.py
-├── notifier.py
-│
-├── notifications/
-│   ├── email_notifier.py
-│   └── telegram_notifier.py
-│
-├── utils/
-│   ├── time_utils.py
-│   └── error_utils.py
-│
-├── config.py
-└── exceptions.py
++-- __init__.py
++-- monitor.py
++-- logger.py
++-- runtime.py
++-- summary.py
++-- notifier.py
+�
++-- notifications/
+�   +-- email_notifier.py
+�   +-- telegram_notifier.py
+�
++-- utils/
+�   +-- time_utils.py
+�   +-- error_utils.py
+�
++-- config.py
++-- exceptions.py
 ```
 
 This structure keeps the system **modular and extensible**.
 
 ---
 
-# 4️⃣ Core Modules
+# 4?? Core Modules
 
 ## 4.1 Monitor Module
 
@@ -118,15 +118,15 @@ Internal behavior:
 
 ```
 start()
-   ↓
+   ?
 record start_time
-   ↓
+   ?
 execute training
-   ↓
+   ?
 capture status
-   ↓
+   ?
 generate summary
-   ↓
+   ?
 send notification
 ```
 
@@ -248,13 +248,13 @@ TelegramNotifier
 
 ---
 
-# 5️⃣ Notification Channel Architecture
+# 5?? Notification Channel Architecture
 
 ```
 Notifier
-   │
-   ├── EmailNotifier
-   └── TelegramNotifier
+   �
+   +-- EmailNotifier
+   +-- TelegramNotifier
 ```
 
 Each notifier implements:
@@ -271,7 +271,7 @@ notifier.send(summary)
 
 ---
 
-# 6️⃣ Configuration System
+# 6?? Configuration System
 
 Users configure notification settings.
 
@@ -297,41 +297,41 @@ Config loader reads settings during runtime.
 
 ---
 
-# 7️⃣ Data Flow
+# 7?? Data Flow
 
 ```
 Training Script
-      │
-      ▼
+      �
+      ?
 Monitor.start()
-      │
-      ▼
+      �
+      ?
 Training Execution
-      │
-      ▼
+      �
+      ?
 Metrics Logged
-      │
-      ▼
+      �
+      ?
 Monitor.end()
-      │
-      ▼
+      �
+      ?
 Summary Generator
-      │
-      ▼
+      �
+      ?
 Notification Engine
-      │
-      ▼
+      �
+      ?
 User receives alert
 ```
 
 ---
 
-# 8️⃣ Example User Workflow
+# 8?? Example User Workflow
 
 Installation:
 
 ```
-pip install trainwatch
+pip install trainwatch-notify
 ```
 
 Training script:
@@ -359,21 +359,21 @@ Epochs: 20
 
 ---
 
-# 9️⃣ Error Scenario Workflow
+# 9?? Error Scenario Workflow
 
 ```
 Training starts
-      │
-      ▼
+      �
+      ?
 Error occurs
-      │
-      ▼
+      �
+      ?
 Monitor.fail()
-      │
-      ▼
+      �
+      ?
 Summary generated
-      │
-      ▼
+      �
+      ?
 Failure notification sent
 ```
 
@@ -389,7 +389,7 @@ Epoch: 6
 
 ---
 
-# 🔟 Logging System
+# ?? Logging System
 
 Optional logs saved locally.
 
@@ -414,7 +414,7 @@ This helps debugging.
 
 ---
 
-# 11️⃣ Extensibility (Future Phases)
+# 11?? Extensibility (Future Phases)
 
 Phase-01 architecture supports later features:
 
@@ -431,12 +431,12 @@ Because the architecture is modular, future development becomes easy.
 
 ---
 
-# 12️⃣ Estimated Code Size
+# 12?? Estimated Code Size
 
 Phase-01 realistically:
 
 ```
-400 – 700 lines
+400 � 700 lines
 ```
 
 Modules:
@@ -451,7 +451,7 @@ Modules:
 
 ---
 
-# 13️⃣ Deployment Plan
+# 13?? Deployment Plan
 
 Open-source release includes:
 
@@ -464,14 +464,14 @@ example notebooks
 
 ---
 
-# 14️⃣ Phase-01 Success Criteria
+# 14?? Phase-01 Success Criteria
 
 Success means:
 
-• developers install the package
-• notifications work reliably
-• integration is easy
-• GitHub repository gains attention
+� developers install the package
+� notifications work reliably
+� integration is easy
+� GitHub repository gains attention
 
 Not revenue yet.
 

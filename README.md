@@ -7,8 +7,10 @@ TrainWatch notifies developers when ML training completes or fails and provides 
 ## Install
 
 ```
-pip install trainwatch
+pip install trainwatch-notify
 ```
+
+Note: the PyPI distribution name is `trainwatch-notify`, but the import package remains `trainwatch`.
 
 ## Quickstart
 
