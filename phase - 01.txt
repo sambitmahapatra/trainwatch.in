@@ -1,0 +1,492 @@
+﻿# Phase-01 Architecture
+
+**Project: TrainWatch (Working Name)**
+Purpose: Notify developers when ML training **completes or fails**, with a **minimal run summary**.
+
+---
+
+# 1️⃣ System Overview
+
+Phase-01 architecture is intentionally simple.
+
+```
+User Training Script
+        │
+        ▼
+TrainWatch Monitor
+        │
+        ├── Runtime Tracker
+        ├── Metric Logger (optional)
+        ├── Error Capture
+        │
+        ▼
+Summary Generator
+        │
+        ▼
+Notification Engine
+        │
+        ├── Email
+        └── Telegram
+```
+
+The system only answers one question:
+
+> **Did training finish or fail?**
+
+And sends a **short summary**.
+
+---
+
+# 2️⃣ Core Design Principles
+
+### Simplicity
+
+Developers should integrate the tool in **two lines of code**.
+
+### Framework-Agnostic
+
+Works with:
+
+* PyTorch
+* TensorFlow
+* scikit-learn
+* custom training loops
+
+### Minimal Dependencies
+
+Avoid heavy libraries.
+
+### Reliability
+
+Notifications must always be sent if training finishes or crashes.
+
+---
+
+# 3️⃣ Package Structure
+
+```
+trainwatch/
+
+├── __init__.py
+├── monitor.py
+├── logger.py
+├── runtime.py
+├── summary.py
+├── notifier.py
+│
+├── notifications/
+│   ├── email_notifier.py
+│   └── telegram_notifier.py
+│
+├── utils/
+│   ├── time_utils.py
+│   └── error_utils.py
+│
+├── config.py
+└── exceptions.py
+```
+
+This structure keeps the system **modular and extensible**.
+
+---
+
+# 4️⃣ Core Modules
+
+## 4.1 Monitor Module
+
+This is the **entry point**.
+
+Responsible for:
+
+* starting monitoring
+* stopping monitoring
+* capturing exceptions
+
+Example usage:
+
+```python
+from trainwatch import monitor
+
+monitor.start()
+
+train_model()
+
+monitor.end()
+```
+
+Internal behavior:
+
+```
+start()
+   ↓
+record start_time
+   ↓
+execute training
+   ↓
+capture status
+   ↓
+generate summary
+   ↓
+send notification
+```
+
+---
+
+# 4.2 Runtime Tracker
+
+Tracks execution time.
+
+Example output:
+
+```
+Training runtime: 2h 13m
+```
+
+Implementation logic:
+
+```
+start_time = time.now()
+end_time = time.now()
+
+runtime = end_time - start_time
+```
+
+---
+
+# 4.3 Metric Logger (Optional)
+
+Allows users to log metrics manually.
+
+Example:
+
+```python
+monitor.log(epoch=10, loss=0.23, val_acc=0.91)
+```
+
+Internally stored as:
+
+```
+metrics = [
+ {epoch:1, loss:0.72},
+ {epoch:2, loss:0.61}
+]
+```
+
+Used later for summary.
+
+---
+
+# 4.4 Error Capture System
+
+Critical for detecting training failures.
+
+Implementation:
+
+```
+try:
+   train_model()
+except Exception as e:
+   monitor.fail(e)
+```
+
+Captured data:
+
+```
+error type
+error message
+last epoch
+runtime
+```
+
+---
+
+# 4.5 Summary Generator
+
+Produces **4-5 line report**.
+
+Example output:
+
+```
+Training Completed
+
+Runtime: 2h 13m
+Best Validation Accuracy: 0.93
+Epoch of Best Model: 16
+Final Loss: 0.28
+```
+
+Or failure case:
+
+```
+Training Failed
+
+Runtime: 32m
+Error: CUDA Out Of Memory
+Last Epoch: 5
+```
+
+This module formats messages for notifications.
+
+---
+
+# 4.6 Notification Engine
+
+Responsible for sending alerts.
+
+Interface design:
+
+```
+send(message)
+```
+
+Supports multiple channels.
+
+```
+EmailNotifier
+TelegramNotifier
+```
+
+---
+
+# 5️⃣ Notification Channel Architecture
+
+```
+Notifier
+   │
+   ├── EmailNotifier
+   └── TelegramNotifier
+```
+
+Each notifier implements:
+
+```
+send(message)
+```
+
+Example:
+
+```
+notifier.send(summary)
+```
+
+---
+
+# 6️⃣ Configuration System
+
+Users configure notification settings.
+
+Example config file:
+
+```
+trainwatch_config.yaml
+```
+
+Example:
+
+```
+notifications:
+  telegram: true
+  email: false
+
+telegram:
+  bot_token: XXXXX
+  chat_id: XXXXX
+```
+
+Config loader reads settings during runtime.
+
+---
+
+# 7️⃣ Data Flow
+
+```
+Training Script
+      │
+      ▼
+Monitor.start()
+      │
+      ▼
+Training Execution
+      │
+      ▼
+Metrics Logged
+      │
+      ▼
+Monitor.end()
+      │
+      ▼
+Summary Generator
+      │
+      ▼
+Notification Engine
+      │
+      ▼
+User receives alert
+```
+
+---
+
+# 8️⃣ Example User Workflow
+
+Installation:
+
+```
+pip install trainwatch
+```
+
+Training script:
+
+```python
+from trainwatch import monitor
+
+monitor.start()
+
+for epoch in range(20):
+    train()
+
+monitor.end()
+```
+
+Notification received:
+
+```
+Training Completed
+
+Runtime: 1h 48m
+Final Loss: 0.32
+Epochs: 20
+```
+
+---
+
+# 9️⃣ Error Scenario Workflow
+
+```
+Training starts
+      │
+      ▼
+Error occurs
+      │
+      ▼
+Monitor.fail()
+      │
+      ▼
+Summary generated
+      │
+      ▼
+Failure notification sent
+```
+
+Example alert:
+
+```
+Training Failed
+
+Runtime: 27m
+Error: CUDA Out Of Memory
+Epoch: 6
+```
+
+---
+
+# 🔟 Logging System
+
+Optional logs saved locally.
+
+Example file:
+
+```
+trainwatch_run.json
+```
+
+Contents:
+
+```
+{
+  runtime: "2h 13m",
+  epochs: 20,
+  final_loss: 0.28,
+  status: "completed"
+}
+```
+
+This helps debugging.
+
+---
+
+# 11️⃣ Extensibility (Future Phases)
+
+Phase-01 architecture supports later features:
+
+Future modules:
+
+```
+analyzer.py
+training_health_model.py
+remote_terminal.py
+gpu_monitor.py
+```
+
+Because the architecture is modular, future development becomes easy.
+
+---
+
+# 12️⃣ Estimated Code Size
+
+Phase-01 realistically:
+
+```
+400 – 700 lines
+```
+
+Modules:
+
+| Module   | Lines |
+| -------- | ----- |
+| monitor  | 120   |
+| notifier | 150   |
+| summary  | 80    |
+| logger   | 80    |
+| utils    | 50    |
+
+---
+
+# 13️⃣ Deployment Plan
+
+Open-source release includes:
+
+```
+GitHub repository
+PyPI package
+documentation
+example notebooks
+```
+
+---
+
+# 14️⃣ Phase-01 Success Criteria
+
+Success means:
+
+• developers install the package
+• notifications work reliably
+• integration is easy
+• GitHub repository gains attention
+
+Not revenue yet.
+
+---
+
+# Final Architecture Summary
+
+Phase-01 delivers a **lightweight ML training awareness tool**.
+
+Core capabilities:
+
+* training monitoring
+* runtime tracking
+* failure detection
+* minimal summaries
+* reliable notifications
+
+All implemented as a **simple Python package**.
