@@ -1,21 +1,21 @@
-﻿# TrainWatch
+# TrainWatcher
 
 A lightweight training awareness system for machine learning workflows.
 
-TrainWatch notifies developers when ML training completes or fails and provides a minimal run summary. It is designed to be easy to integrate, framework-agnostic, and reliable.
+TrainWatcher notifies developers when ML training completes or fails and provides a minimal run summary. It is designed to be easy to integrate, framework-agnostic, and reliable.
+
+Developed and managed by Sambit Mahapatra.
 
 ## Install
 
 ```
-pip install trainwatch-notify
+pip install trainwatcher
 ```
-
-Note: the PyPI distribution name is `trainwatch-notify`, but the import package remains `trainwatch`.
 
 ## Quickstart
 
 ```python
-from trainwatch import monitor
+from trainwatcher import monitor
 
 monitor.start()
 
@@ -31,7 +31,7 @@ except Exception as exc:
 Convenience context manager:
 
 ```python
-from trainwatch import monitor
+from trainwatcher import monitor
 
 with monitor.watch():
     # Your training loop here.
@@ -40,7 +40,7 @@ with monitor.watch():
 
 ## Configuration
 
-TrainWatch reads configuration from `trainwatch_config.yaml` by default. You can also set `TRAINWATCH_CONFIG` to an absolute path or pass a config dict to `monitor.end(config=...)` and `monitor.fail(config=...)`.
+TrainWatcher reads configuration from `trainwatcher_config.yaml` by default. You can also set `TRAINWATCHER_CONFIG` to an absolute path or pass a config dict to `monitor.end(config=...)` and `monitor.fail(config=...)`.
 
 Example config (YAML):
 
@@ -57,41 +57,48 @@ email:
   sender: user@example.com
   recipient: user@example.com
   use_tls: true
-  subject: TrainWatch Notification
+  subject: TrainWatcher Notification
 
 logging:
   enabled: true
-  path: trainwatch_run.json
+  path: trainwatcher_run.json
 ```
 
-An example config is available at `examples/trainwatch_config.yaml`.
+An example config is available at `examples/trainwatcher_config.yaml`.
 
 ## Cloud Notifications (Resend + Cloudflare)
 
-If you want users to receive email without SMTP setup, use the TrainWatch Cloud backend.
+If you want users to receive email without SMTP setup, use the TrainWatcher Cloud backend.
 
 1. Deploy the Cloudflare Worker in `cloudflare/` and set `RESEND_API_KEY` and `RESEND_FROM`.
-2. Set the backend URL locally:
+2. If you self-host, set the backend URL locally:
 
 ```
-export TRAINWATCH_BASE_URL="https://your-worker.workers.dev"
+export TRAINWATCHER_BASE_URL="https://your-worker.workers.dev"
 ```
 
 3. Register an email once:
 
 ```python
-from trainwatch import add_email
+from trainwatcher import add_email
 
 add_email("you@example.com")
 ```
 
 After that, `monitor.end()` and `monitor.fail()` will send notifications automatically if credentials exist.
+If you use the hosted TrainWatcher backend, no base URL is required.
+You can inspect the active backend URL with:
+
+```python
+from trainwatcher import get_base_url
+print(get_base_url())
+```
 Cloud backend enforces a default limit of 10 emails per user per day.
 
 To remove the email:
 
 ```python
-from trainwatch import delete_email
+from trainwatcher import delete_email
 
 delete_email()
 ```
@@ -101,9 +108,9 @@ delete_email()
 You can also register/delete emails via the CLI:
 
 ```
-trainwatch add-email you@example.com
-trainwatch delete-email
-trainwatch help
+trainwatcher add-email you@example.com
+trainwatcher delete-email
+trainwatcher help
 ```
 
 ## Mid-Run Notifications
@@ -111,7 +118,7 @@ trainwatch help
 Manual milestone:
 
 ```python
-from trainwatch import monitor
+from trainwatcher import monitor
 
 monitor.notify("Model loaded on GPU")
 ```
@@ -155,29 +162,29 @@ limits:
 
 These environment variables override config values when set.
 
-- `TRAINWATCH_CONFIG`
-- `TRAINWATCH_BASE_URL`
-- `TRAINWATCH_API_KEY`
-- `TRAINWATCH_CREDENTIALS_PATH`
-- `TRAINWATCH_DISABLE_PROXY`
-- `TRAINWATCH_NOTIFICATIONS_EMAIL`
-- `TRAINWATCH_NOTIFICATIONS_TELEGRAM`
-- `TRAINWATCH_EMAIL_HOST`
-- `TRAINWATCH_EMAIL_PORT`
-- `TRAINWATCH_EMAIL_USERNAME`
-- `TRAINWATCH_EMAIL_PASSWORD`
-- `TRAINWATCH_EMAIL_SENDER`
-- `TRAINWATCH_EMAIL_RECIPIENT`
-- `TRAINWATCH_EMAIL_USE_TLS`
-- `TRAINWATCH_EMAIL_SUBJECT`
-- `TRAINWATCH_TELEGRAM_BOT_TOKEN`
-- `TRAINWATCH_TELEGRAM_CHAT_ID`
-- `TRAINWATCH_LOGGING_ENABLED`
-- `TRAINWATCH_LOGGING_PATH`
+- `TRAINWATCHER_CONFIG`
+- `TRAINWATCHER_BASE_URL`
+- `TRAINWATCHER_API_KEY`
+- `TRAINWATCHER_CREDENTIALS_PATH`
+- `TRAINWATCHER_DISABLE_PROXY`
+- `TRAINWATCHER_NOTIFICATIONS_EMAIL`
+- `TRAINWATCHER_NOTIFICATIONS_TELEGRAM`
+- `TRAINWATCHER_EMAIL_HOST`
+- `TRAINWATCHER_EMAIL_PORT`
+- `TRAINWATCHER_EMAIL_USERNAME`
+- `TRAINWATCHER_EMAIL_PASSWORD`
+- `TRAINWATCHER_EMAIL_SENDER`
+- `TRAINWATCHER_EMAIL_RECIPIENT`
+- `TRAINWATCHER_EMAIL_USE_TLS`
+- `TRAINWATCHER_EMAIL_SUBJECT`
+- `TRAINWATCHER_TELEGRAM_BOT_TOKEN`
+- `TRAINWATCHER_TELEGRAM_CHAT_ID`
+- `TRAINWATCHER_LOGGING_ENABLED`
+- `TRAINWATCHER_LOGGING_PATH`
 
 ## Logging
 
-Set `logging.enabled: true` in the config to write a run summary JSON file. The default path is `trainwatch_run.json` relative to the config file location.
+Set `logging.enabled: true` in the config to write a run summary JSON file. The default path is `trainwatcher_run.json` relative to the config file location.
 
 ## Testing
 
@@ -190,7 +197,7 @@ pytest
 
 ## Vision
 
-TrainWatch aims to become an intelligent training awareness layer that lets developers manage and monitor long-running training processes without constant supervision. The long-term goal is an intelligent training companion that integrates into broader ML tooling ecosystems and improves developer productivity.
+TrainWatcher aims to become an intelligent training awareness layer that lets developers manage and monitor long-running training processes without constant supervision. The long-term goal is an intelligent training companion that integrates into broader ML tooling ecosystems and improves developer productivity.
 
 ## Mission
 
@@ -206,7 +213,7 @@ Long-running ML training jobs often require repeated manual checks for completio
 
 ## Value Proposition
 
-TrainWatch allows developers to step away during training without losing awareness of outcomes. Minimal integration and reliable notifications reduce monitoring fatigue and improve experimentation efficiency.
+TrainWatcher allows developers to step away during training without losing awareness of outcomes. Minimal integration and reliable notifications reduce monitoring fatigue and improve experimentation efficiency.
 
 ## License
 
