@@ -2,7 +2,7 @@
 
 A lightweight training awareness system for machine learning workflows.
 
-TrainWatcher notifies developers when ML training completes or fails and provides a minimal run summary. It is designed to be easy to integrate, framework-agnostic, and reliable.
+TrainWatcher notifies developers when ML training completes or fails and provides a minimal run summary. Notifications can be delivered via email or Telegram (and a hosted cloud email backend is available). It is designed to be easy to integrate, framework-agnostic, and reliable.
 
 Developed and managed by Sambit Mahapatra.
 
