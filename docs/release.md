@@ -1,4 +1,4 @@
-﻿# Release Checklist
+# Release Checklist
 
 ## Before GitHub
 
@@ -10,7 +10,7 @@
 
 ## Before PyPI
 
-1. Bump version in `pyproject.toml` and `trainwatch/__init__.py`.
+1. Bump version in `pyproject.toml` and `trainwatcher/__init__.py`.
 2. Build package:
 
 ```
@@ -25,5 +25,5 @@ python -m twine upload dist/*
 
 ## Recommended tags
 
-- Create a Git tag: `v0.1.0`
+- Create a Git tag: `vX.Y.Z`
 - Push tags to GitHub

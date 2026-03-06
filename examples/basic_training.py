@@ -1,4 +1,4 @@
-﻿from trainwatch import monitor
+from trainwatcher import monitor
 
 
 def train_model(epochs: int = 3) -> None:
@@ -10,7 +10,7 @@ def train_model(epochs: int = 3) -> None:
 
 
 if __name__ == "__main__":
-    # Either set TRAINWATCH_CONFIG to point to your config file
+    # Either set TRAINWATCHER_CONFIG to point to your config file
     # or pass config directly to monitor.end()/monitor.fail().
     monitor.start()
     try:

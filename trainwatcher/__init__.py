@@ -1,6 +1,7 @@
 """TrainWatcher package."""
 
 from . import monitor as monitor
+from .api import watch as watch
 from .cloud import add_email as add_email
 from .cloud import delete_email as delete_email
 from .cloud import verify_email as verify_email
@@ -9,6 +10,7 @@ from .help import help as help
 
 __all__ = [
     "monitor",
+    "watch",
     "add_email",
     "delete_email",
     "verify_email",

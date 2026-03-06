@@ -1,6 +1,6 @@
-﻿import unittest
+import unittest
 
-from trainwatch import monitor
+from trainwatcher import monitor
 
 
 class MonitorTests(unittest.TestCase):

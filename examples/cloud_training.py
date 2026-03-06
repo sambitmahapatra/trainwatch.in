@@ -1,6 +1,6 @@
 import time
 
-from trainwatch import add_email, monitor
+from trainwatcher import add_email, monitor
 
 
 # One-time cloud setup (run once, then comment out):

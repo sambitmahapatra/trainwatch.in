@@ -1,6 +1,6 @@
-﻿# TrainWatch Phase-01 Architecture
+# TrainWatcher Phase-01 Architecture
 
-**Project:** TrainWatch (working name)
+**Project:** TrainWatcher (working name)
 
 **Purpose:** Notify developers when ML training completes or fails, with a minimal run summary.
 
@@ -12,7 +12,7 @@ Phase-01 is intentionally simple.
 User Training Script
         |
         v
-TrainWatch Monitor
+TrainWatcher Monitor
         |
         |-- Runtime Tracker
         |-- Metric Logger (optional)
@@ -40,25 +40,25 @@ The system answers one question: **Did training finish or fail?** It then sends 
 ## Package Structure
 
 ```
-trainwatch/
+trainwatcher/
 
-├── __init__.py
-├── monitor.py
-├── logger.py
-├── runtime.py
-├── summary.py
-├── notifier.py
-│
-├── notifications/
-│   ├── email_notifier.py
-│   └── telegram_notifier.py
-│
-├── utils/
-│   ├── time_utils.py
-│   └── error_utils.py
-│
-├── config.py
-└── exceptions.py
++-- __init__.py
++-- monitor.py
++-- logger.py
++-- runtime.py
++-- summary.py
++-- notifier.py
+�
++-- notifications/
+�   +-- email_notifier.py
+�   +-- telegram_notifier.py
+�
++-- utils/
+�   +-- time_utils.py
+�   +-- error_utils.py
+�
++-- config.py
++-- exceptions.py
 ```
 
 ## Core Modules
@@ -70,7 +70,7 @@ Entry point responsible for starting monitoring, stopping monitoring, and captur
 Example usage:
 
 ```python
-from trainwatch import monitor
+from trainwatcher import monitor
 
 monitor.start()
 
@@ -200,7 +200,7 @@ Each notifier implements `send(message)`.
 
 ## Configuration System
 
-Users configure notification settings via a config file (example: `trainwatch_config.yaml`).
+Users configure notification settings via a config file (example: `trainwatcher_config.yaml`).
 
 Example:
 
@@ -218,7 +218,7 @@ The config loader reads these settings at runtime.
 
 ## Cloud Notifications (Optional)
 
-TrainWatch can also send notifications through a hosted backend (Cloudflare Worker + Resend).
+TrainWatcher can also send notifications through a hosted backend (Cloudflare Worker + Resend).
 This avoids SMTP setup for end users. See `cloudflare/README.md` for deployment details.
 
 ## Data Flow
@@ -253,15 +253,14 @@ User receives alert
 Installation:
 
 ```
-pip install trainwatch-notify
+pip install trainwatcher
 ```
 
-Note: the PyPI distribution name is `trainwatch-notify`, but the import package remains `trainwatch`.
 
 Training script:
 
 ```python
-from trainwatch import monitor
+from trainwatcher import monitor
 
 monitor.start()
 
@@ -311,7 +310,7 @@ Epoch: 6
 
 ## Logging System
 
-Optional logs can be saved locally (example file: `trainwatch_run.json`).
+Optional logs can be saved locally (example file: `trainwatcher_run.json`).
 
 Example contents:
 

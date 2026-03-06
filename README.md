@@ -38,6 +38,58 @@ with monitor.watch():
     pass
 ```
 
+Single-call wrapper:
+
+```python
+from trainwatcher import watch
+
+watch(train_model, interpretation="rule")
+```
+
+Zero-config hosted interpretation:
+
+```python
+from trainwatcher import watch
+
+watch(train_model, interpretation="hybrid")
+```
+
+If the user already registered an email with `add_email(...)`, `hybrid` uses the TrainWatcher hosted backend automatically. No user LLM key is required.
+
+If you log both training and validation metrics, TrainWatcher can also add a deterministic observation and next-step suggestions to successful summaries.
+
+```python
+from trainwatcher import monitor
+
+monitor.start()
+
+for epoch in range(1, 5):
+    monitor.log(
+        epoch=epoch,
+        loss=1.0 / epoch,
+        val_loss=0.7 + (epoch * 0.05),
+    )
+
+monitor.end()
+```
+
+Example completed summary:
+
+```text
+Training Completed
+
+Runtime: 2m
+Final Loss: 0.25
+Epochs: 4
+
+Observation: Training loss improved while validation loss worsened.
+
+Suggestions:
+- Enable early stopping to stop near the best validation checkpoint.
+- Increase regularization such as dropout or weight decay.
+- Reduce the number of training epochs or add more data augmentation.
+```
+
 ## Configuration
 
 TrainWatcher reads configuration from `trainwatcher_config.yaml` by default. You can also set `TRAINWATCHER_CONFIG` to an absolute path or pass a config dict to `monitor.end(config=...)` and `monitor.fail(config=...)`.
@@ -62,6 +114,29 @@ email:
 logging:
   enabled: true
   path: trainwatcher_run.json
+
+interpretation:
+  mode: hybrid    # rule | llm | hybrid
+  fallback: rule  # rule | byok | none
+  hosted:
+    enabled: true
+```
+
+Advanced BYOK fallback example:
+
+```yaml
+interpretation:
+  mode: hybrid
+  fallback: byok
+  hosted:
+    enabled: true
+  byok:
+    api_key: YOUR_OPTIONAL_KEY
+    base_url: https://openrouter.ai/api/v1
+    model: openai/gpt-oss-20b
+    max_tokens: 300
+    temperature: 0.2
+    timeout_seconds: 20
 ```
 
 An example config is available at `examples/trainwatcher_config.yaml`.
@@ -158,6 +233,46 @@ limits:
   cloud_min_interval_seconds: 1800
 ```
 
+## Phase-02 Interpretation
+
+TrainWatcher Phase-02 adds a deterministic interpretation layer on top of the original notification flow.
+
+Current Phase-02 core:
+
+- normalized metric aliases (`loss`, `train_loss`, `val_loss`, `acc`, `val_acc`, `lr`, etc.)
+- rule-based analysis for overfitting, plateau, diverging training, and normal convergence
+- short implementation-oriented suggestions
+- duck-typed best-model extraction for sklearn-like search objects
+- hosted LLM interpretation for `hybrid` and `llm` modes
+- optional Markdown report rendering for advanced integrations
+
+The rule engine stays lightweight and framework-agnostic. It does not depend on PyTorch, TensorFlow, scikit-learn, or transformers. It only consumes the metrics you log through TrainWatcher.
+
+Advanced/internal modules available now:
+
+- `trainwatcher.best_model`
+- `trainwatcher.llm`
+- `trainwatcher.metrics`
+- `trainwatcher.prompts`
+- `trainwatcher.rules`
+- `trainwatcher.suggestions`
+- `trainwatcher.report`
+
+Rule-based interpretation always runs.
+Hosted LLM interpretation is available through config-driven `llm` or `hybrid` modes and uses the TrainWatcher backend by default.
+If the hosted LLM path fails or hits quota, TrainWatcher falls back to the rule-based summary.
+Advanced users can optionally configure BYOK fallback with the `byok` config block or `TRAINWATCHER_LLM_*` environment variables.
+
+Best-model capture is available through the monitor today:
+
+```python
+from trainwatcher import monitor
+
+monitor.start()
+monitor.set_best_model(grid_search)
+monitor.end()
+```
+
 ## Environment Variables
 
 These environment variables override config values when set.
@@ -181,10 +296,22 @@ These environment variables override config values when set.
 - `TRAINWATCHER_TELEGRAM_CHAT_ID`
 - `TRAINWATCHER_LOGGING_ENABLED`
 - `TRAINWATCHER_LOGGING_PATH`
+- `TRAINWATCHER_INTERPRETATION_MODE`
+- `TRAINWATCHER_INTERPRETATION_FALLBACK`
+- `TRAINWATCHER_LLM_API_KEY`
+- `TRAINWATCHER_LLM_BASE_URL`
+- `TRAINWATCHER_LLM_MODEL`
+- `TRAINWATCHER_LLM_MAX_TOKENS`
+- `TRAINWATCHER_LLM_TEMPERATURE`
+- `TRAINWATCHER_LLM_TIMEOUT_SECONDS`
+
+The `TRAINWATCHER_LLM_*` variables are for optional BYOK fallback. Normal hosted interpretation does not require them.
 
 ## Logging
 
 Set `logging.enabled: true` in the config to write a run summary JSON file. The default path is `trainwatcher_run.json` relative to the config file location.
+
+The JSON run log is an internal artifact for debugging or integrations. Normal usage does not require reading it directly.
 
 ## Testing
 

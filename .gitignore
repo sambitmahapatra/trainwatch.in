@@ -1,4 +1,4 @@
-﻿# Python
+# Python
 __pycache__/
 *.py[cod]
 *.pyo
@@ -38,3 +38,5 @@ trainwatch_run.json
 # Secrets
 .env
 .env.*
+trainwatcher_config.yaml
+trainwatcher_run.json

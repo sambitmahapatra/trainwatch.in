@@ -18,6 +18,19 @@ Basic usage:
   # training...
   monitor.end()
 
+Single-call wrapper:
+  from trainwatcher import watch
+  watch(train, interpretation="rule")
+
+Zero-config hosted interpretation:
+  from trainwatcher import watch
+  watch(train, interpretation="hybrid")
+
+Interpretation modes:
+  rule   -> deterministic local interpretation only
+  hybrid -> local rules + hosted TrainWatcher LLM (no user LLM key needed)
+  llm    -> hosted TrainWatcher LLM with rule fallback
+
 Minimal notebook pattern:
   from trainwatcher import monitor
   monitor.start()
@@ -64,6 +77,9 @@ CLI:
 
 Environment:
   TRAINWATCHER_BASE_URL, TRAINWATCHER_API_KEY, TRAINWATCHER_DISABLE_PROXY
+  TRAINWATCHER_INTERPRETATION_MODE
+  TRAINWATCHER_INTERPRETATION_FALLBACK
+  TRAINWATCHER_LLM_API_KEY, TRAINWATCHER_LLM_BASE_URL, TRAINWATCHER_LLM_MODEL  # optional BYOK fallback
   (Legacy TRAINWATCH_* env vars are still supported.)
 """.strip()
     print(text)

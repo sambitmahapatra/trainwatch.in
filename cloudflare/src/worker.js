@@ -9,6 +9,7 @@ const RATE_LIMITS = {
   register_email: { limit: 3, window: 3600 },
   verify_ip: { limit: 10, window: 3600 },
   notify_user: { limit: 10, window: 86400 },
+  interpret_user: { limit: 10, window: 86400 },
   delete_key: { limit: 10, window: 3600 },
 };
 
@@ -24,6 +25,9 @@ export default {
       }
       if (request.method === "POST" && url.pathname === "/notify") {
         return await handleNotify(request, env);
+      }
+      if (request.method === "POST" && url.pathname === "/interpret") {
+        return await handleInterpret(request, env);
       }
       if (request.method === "POST" && url.pathname === "/delete") {
         return await handleDelete(request, env);
@@ -79,8 +83,8 @@ async function handleRegister(request, env) {
 
   await sendEmail(env, {
     to: email,
-    subject: "Your TrainWatch verification code",
-    text: `Your TrainWatch verification code is ${code}. It expires in 10 minutes.`,
+    subject: "Your TrainWatcher verification code",
+    text: `Your TrainWatcher verification code is ${code}. It expires in 10 minutes.`,
   });
 
   return jsonResponse({ ok: true });
@@ -199,7 +203,7 @@ async function handleNotify(request, env) {
 
   const body = await readJson(request);
   const message = (body.message || body.summary || body.text || "").toString().trim();
-  const subject = (body.subject || "TrainWatch Notification").toString().trim();
+  const subject = (body.subject || "TrainWatcher Notification").toString().trim();
 
   if (!message) {
     return jsonResponse({ error: "Message is required" }, 400);
@@ -258,6 +262,56 @@ async function handleDelete(request, env) {
     .run();
 
   return jsonResponse({ ok: true });
+}
+
+async function handleInterpret(request, env) {
+  const apiKey = extractApiKey(request);
+  if (!apiKey) {
+    return jsonResponse({ error: "Missing API key" }, 401);
+  }
+
+  const keyHash = await hashHex(apiKey + getSalt(env));
+  const keyRow = await env.DB.prepare(
+    "SELECT api_keys.id as key_id, users.id as user_id FROM api_keys " +
+      "JOIN users ON users.id = api_keys.user_id " +
+      "WHERE api_keys.key_hash = ?1 AND api_keys.revoked_at IS NULL"
+  )
+    .bind(keyHash)
+    .first();
+
+  if (!keyRow) {
+    return jsonResponse({ error: "Invalid API key" }, 401);
+  }
+
+  if (
+    !(await checkRateLimit(
+      env,
+      `interpret:user:${keyRow.user_id}`,
+      RATE_LIMITS.interpret_user.limit,
+      RATE_LIMITS.interpret_user.window
+    ))
+  ) {
+    return jsonResponse({ error: "Hosted interpretation quota exceeded" }, 429);
+  }
+
+  const body = await readJson(request);
+  const payload = body.payload && typeof body.payload === "object" ? body.payload : null;
+  const analysis = body.analysis && typeof body.analysis === "object" ? body.analysis : null;
+  const mode = typeof body.mode === "string" ? body.mode.trim().toLowerCase() : "hybrid";
+
+  if (!payload || !analysis) {
+    return jsonResponse({ error: "payload and analysis are required" }, 400);
+  }
+
+  const result = await requestHostedInterpretation(env, { payload, analysis, mode });
+
+  await env.DB.prepare(
+    "UPDATE api_keys SET last_used_at = ?1 WHERE id = ?2"
+  )
+    .bind(new Date().toISOString(), keyRow.key_id)
+    .run();
+
+  return jsonResponse(result);
 }
 
 function normalizeEmail(value) {
@@ -399,6 +453,134 @@ async function sendEmail(env, { to, subject, text }) {
     const details = await response.text();
     throw new Error(`Resend error: ${response.status} ${details}`);
   }
+}
+
+async function requestHostedInterpretation(env, { payload, analysis, mode }) {
+  const apiKey = env.LLM_API_KEY;
+  if (!apiKey) {
+    throw new Error("Missing LLM_API_KEY");
+  }
+
+  const baseUrl = (env.LLM_BASE_URL || "https://api.groq.com/openai/v1").replace(/\/+$/, "");
+  const model = env.LLM_MODEL || "llama-3.1-8b-instant";
+  const provider = env.LLM_PROVIDER || inferProvider(baseUrl);
+
+  const response = await fetch(`${baseUrl}/chat/completions`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model,
+      messages: buildHostedMessages(payload, analysis, mode),
+      temperature: 0.2,
+      max_tokens: 300,
+    }),
+  });
+
+  if (!response.ok) {
+    const details = await response.text();
+    throw new Error(`Hosted LLM error: ${response.status} ${details}`);
+  }
+
+  const data = await response.json();
+  const text = data?.choices?.[0]?.message?.content?.trim();
+  if (!text) {
+    throw new Error("Hosted LLM returned no interpretation text");
+  }
+
+  return {
+    text,
+    provider,
+    model,
+    source: "hosted",
+    mode,
+  };
+}
+
+function buildHostedMessages(payload, analysis, mode) {
+  const status = payload?.status || "unknown";
+  const runtime = payload?.runtime?.human || "unknown";
+  const epochs = payload?.progress?.epochs;
+  const metrics = payload?.metrics || {};
+  const best = metrics.best || {};
+  const last = metrics.last || {};
+  const bestModel = payload?.best_model || payload?.bestModel || null;
+
+  const lines = [
+    "Training Summary",
+    `Mode: ${mode}`,
+    `Status: ${status}`,
+    `Runtime: ${runtime}`,
+  ];
+
+  if (epochs != null) {
+    lines.push(`Epochs: ${epochs}`);
+  }
+  if (best.val_accuracy?.value != null) {
+    lines.push(`Best validation accuracy: ${best.val_accuracy.value}`);
+  }
+  if (best.val_accuracy?.epoch != null) {
+    lines.push(`Epoch of best validation accuracy: ${best.val_accuracy.epoch}`);
+  }
+  if (last.train_loss != null) {
+    lines.push(`Final training loss: ${last.train_loss}`);
+  }
+  if (last.val_loss != null) {
+    lines.push(`Final validation loss: ${last.val_loss}`);
+  }
+  if (last.train_accuracy != null) {
+    lines.push(`Final training accuracy: ${last.train_accuracy}`);
+  }
+  if (last.val_accuracy != null) {
+    lines.push(`Final validation accuracy: ${last.val_accuracy}`);
+  }
+  if (payload?.error?.type) {
+    lines.push(`Error type: ${payload.error.type}`);
+  }
+  if (payload?.error?.message) {
+    lines.push(`Error message: ${payload.error.message}`);
+  }
+  if (bestModel?.model) {
+    lines.push(`Best model: ${bestModel.model}`);
+  }
+  if (bestModel?.score != null) {
+    lines.push(`Best model score: ${bestModel.score}`);
+  }
+
+  lines.push(`Rule observation: ${analysis?.reason || "No strong rule signal."}`);
+  if (Array.isArray(analysis?.suggestions) && analysis.suggestions.length) {
+    lines.push(`Rule suggestions: ${analysis.suggestions.slice(0, 3).join("; ")}`);
+  }
+  lines.push("");
+  if (status === "failed") {
+    lines.push("Diagnose the failure and suggest practical fixes in under 120 words.");
+  } else {
+    lines.push("Explain the training behavior and suggest practical next steps in under 120 words.");
+  }
+
+  return [
+    {
+      role: "system",
+      content:
+        "You explain machine learning training behavior from aggregated metrics only. Keep the answer concise, practical, and under 120 words.",
+    },
+    {
+      role: "user",
+      content: lines.join("\n"),
+    },
+  ];
+}
+
+function inferProvider(baseUrl) {
+  if (baseUrl.includes("groq.com")) {
+    return "groq";
+  }
+  if (baseUrl.includes("openrouter.ai")) {
+    return "openrouter";
+  }
+  return "hosted";
 }
 
 function jsonResponse(payload, status = 200) {

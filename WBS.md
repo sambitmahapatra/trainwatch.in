@@ -1,4 +1,4 @@
-﻿# Phase-01 Work Breakdown Structure (WBS)
+# Phase-01 Work Breakdown Structure (WBS)
 
 ## Sub Phases
 
@@ -12,7 +12,7 @@
 ## WBS
 
 1.0 Project skeleton
-1.1 Create package layout `trainwatch/` and modules
+1.1 Create package layout `trainwatcher/` and modules
 1.2 Add `pyproject.toml` and package metadata
 1.3 Add `__init__.py` with public API surface
 

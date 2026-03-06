@@ -1,6 +1,6 @@
 # Phase-01 Architecture
 
-**Project: TrainWatch (Working Name)**
+**Project: TrainWatcher (Working Name)**
 Purpose: Notify developers when ML training **completes or fails**, with a **minimal run summary**.
 
 ---
@@ -13,7 +13,7 @@ Phase-01 architecture is intentionally simple.
 User Training Script
         ¦
         ?
-TrainWatch Monitor
+TrainWatcher Monitor
         ¦
         +-- Runtime Tracker
         +-- Metric Logger (optional)
@@ -65,7 +65,7 @@ Notifications must always be sent if training finishes or crashes.
 # 3?? Package Structure
 
 ```
-trainwatch/
+trainwatcher/
 
 +-- __init__.py
 +-- monitor.py
@@ -105,7 +105,7 @@ Responsible for:
 Example usage:
 
 ```python
-from trainwatch import monitor
+from trainwatcher import monitor
 
 monitor.start()
 
@@ -278,7 +278,7 @@ Users configure notification settings.
 Example config file:
 
 ```
-trainwatch_config.yaml
+trainwatcher_config.yaml
 ```
 
 Example:
@@ -331,13 +331,13 @@ User receives alert
 Installation:
 
 ```
-pip install trainwatch-notify
+pip install trainwatcher
 ```
 
 Training script:
 
 ```python
-from trainwatch import monitor
+from trainwatcher import monitor
 
 monitor.start()
 
@@ -396,7 +396,7 @@ Optional logs saved locally.
 Example file:
 
 ```
-trainwatch_run.json
+trainwatcher_run.json
 ```
 
 Contents:

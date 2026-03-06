@@ -1,4 +1,4 @@
-﻿-- TrainWatch Cloud D1 schema
+-- TrainWatcher Cloud D1 schema
 
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
