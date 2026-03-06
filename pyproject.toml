@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "trainwatcher"
-version = "0.2.2"
+version = "0.3.0"
 description = "Lightweight training awareness system for machine learning workflows with email/Telegram notifications."
 readme = "README.md"
 requires-python = ">=3.9"
